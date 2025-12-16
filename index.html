@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>NeoColonia — Browser Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0f172a;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+      color: var(--text);
+    }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #020617f2;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .logo {
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-size: 0.95rem;
+    }
+
+    .village-name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .version-tag {
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+    }
+
+    #auth-panel {
+      padding: 1rem;
+      background: #020617dd;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    #auth-panel h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.1rem;
+    }
+
+    #auth-panel p {
+      margin: 0 0 0.6rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .auth-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .auth-row label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .auth-row input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .auth-buttons button {
+      flex: 1;
+      padding: 0.45rem 0.6rem;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #btn-login {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    #btn-signup {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    #game.hidden,
+    .hidden {
+      display: none;
+    }
+
+    #resources-bar {
+      position: sticky;
+      top: 3.1rem;
+      z-index: 10;
+      padding: 0.4rem 0.75rem;
+      background: #020617f2;
+      backdrop-filter: blur(10px);
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+    }
+
+    .resource-pill {
+      flex: 1 0 0;
+      min-width: 0;
+      padding: 0.4rem 0.65rem;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .resource-pill span:first-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--muted);
+    }
+
+    main {
+      flex: 1;
+      padding: 0.75rem;
+      padding-bottom: 1.5rem;
+    }
+
+    #status-text {
+      min-height: 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    #buildings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .building-card {
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid #1f2937;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .building-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+      gap: 0.5rem;
+    }
+
+    .building-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .building-level {
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    .building-desc {
+      margin: 0 0 0.4rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .building-prod,
+    .building-cost {
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .building-cost {
+      color: var(--accent);
+    }
+
+    .building-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-upgrade {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-upgrade:disabled {
+      background: #1f2937;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    @media (min-width: 768px) {
+      #app {
+        max-width: 520px;
+        margin: 0 auto;
+        border-left: 1px solid #111827;
+        border-right: 1px solid #111827;
+      }
+
+      #resources-bar {
+        top: 3.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="top-bar">
+      <div>
+        <div class="logo">🚀 NeoColonia</div>
+        <div id="village-name" class="village-name">Colonia sconosciuta</div>
+      </div>
+      <span class="version-tag">v0.1</span>
+    </header>
+
+    <!-- Pannello login / registro -->
+    <section id="auth-panel">
+      <h2>Accedi alla colonia</h2>
+      <p>Usa email e password gestite da Supabase Auth. Se la tua istanza richiede conferma email, controlla la posta.</p>
+
+      <div class="auth-row">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="tu@esempio.com">
+      </div>
+
+      <div class="auth-row">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+
+      <div class="auth-buttons">
+        <button id="btn-login" type="button">Login</button>
+        <button id="btn-signup" type="button">Registrati</button>
+      </div>
+    </section>
+
+    <!-- Gioco vero e proprio -->
+    <section id="game" class="hidden">
+      <section id="resources-bar">
+        <div class="resource-pill">
+          <span id="res1-label">Risorsa1</span>
+          <span id="res1-value">0</span>
+        </div>
+        <div class="resource-pill">
+          <span id="res2-label">Risorsa2</span>
+          <span id="res2-value">0</span>
+        </div>
+        <div class="resource-pill">
+          <span id="res3-label">Risorsa3</span>
+          <span id="res3-value">0</span>
+        </div>
+      </section>
+
+      <main>
+        <div id="status-text"></div>
+        <section id="buildings-list">
+          <!-- Card edifici generate via JS -->
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // === CONFIGURA QUI IL TUO PROGETTO SUPABASE ===
+      const SUPABASE_URL = 'https://jhpppwqdaceratwjnbzi.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpocHBwd3FkYWNlcmF0d2puYnppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNzcwOTIsImV4cCI6MjA4MDk1MzA5Mn0.0SL_piY3zI04UTogAPJxl5nlzmm3AFD5pTGPFKaqEyE';
+
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ========= RISORSE (ID FISSI + LABEL MULTILINGUA) =========
+// Il gioco usa sempre gli ID 1..3 (Risorsa1..3). I nomi/icona dipendono da resource_labels (DB).
+const RESOURCE_IDS = [1, 2, 3];
+const lang = localStorage.getItem('lang') || 'it';
+
+async function loadLabels() {
+  const { data, error } = await sb
+    .from('resource_labels')
+    .select('resource_id,name,short_name,icon,decimals')
+    .eq('lang', lang);
+
+  if (error) throw error;
+
+  return Object.fromEntries((data || []).map(r => [Number(r.resource_id), r]));
+}
+
+function formatAmount(n, decimals) {
+  const num = Number(n) || 0;
+  const d = Math.max(0, Math.min(10, Number(decimals) || 0));
+  return new Intl.NumberFormat(lang, {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d
+  }).format(num);
+}
+
+
+      const BUILDING_META = {
+        miniera: {
+          label: 'Miniera di Metallo',
+          description: 'Produce metallo in modo continuo.',
+          icon: '⛏️'
+        },
+        reattore: {
+          label: 'Reattore Energetico',
+          description: 'Genera energia per alimentare il villaggio.',
+          icon: '⚡'
+        },
+        laboratorio_cristallo: {
+          label: 'Laboratorio di Cristallo',
+          description: 'Raffina cristalli quantici rari.',
+          icon: '🔮'
+        },
+        comando: {
+          label: 'Centro di Comando',
+          description: 'Aumenta la produzione globale di tutte le strutture.',
+          icon: '🏛️'
+        }
+      };
+
+      const BUILDING_ORDER = ['miniera', 'reattore', 'laboratorio_cristallo', 'comando'];
+
+      const state = {
+        user: null,
+        playerState: null,
+        playerBuildings: [],
+        levelConfig: null,
+        resourceLabels: null,
+        secondsSinceLastSave: 0
+      };
+
+      const dom = {
+        authPanel: document.getElementById('auth-panel'),
+        gameSection: document.getElementById('game'),
+        statusText: document.getElementById('status-text'),
+        res1Label: document.getElementById('res1-label'),
+        res1Value: document.getElementById('res1-value'),
+        res2Label: document.getElementById('res2-label'),
+        res2Value: document.getElementById('res2-value'),
+        res3Label: document.getElementById('res3-label'),
+        res3Value: document.getElementById('res3-value'),
+        villageName: document.getElementById('village-name'),
+        buildingsList: document.getElementById('buildings-list'),
+        emailInput: document.getElementById('email'),
+        passwordInput: document.getElementById('password'),
+        loginButton: document.getElementById('btn-login'),
+        signupButton: document.getElementById('btn-signup')
+      };
+
+// ========= RISORSE (HELPERS / COMPAT) =========
+// Compat: supporta sia schema vecchio (metallo/energia/cristallo) che nuovo (risorsa1/2/3).
+const LEGACY_PS_COL = { 1: 'metallo', 2: 'energia', 3: 'cristallo' };
+
+function getResourceLabel(resourceId) {
+  const fallback = {
+    resource_id: resourceId,
+    name: `Risorsa${resourceId}`,
+    short_name: `R${resourceId}`,
+    icon: '',
+    decimals: 0
+  };
+  return (state.resourceLabels && state.resourceLabels[resourceId]) ? state.resourceLabels[resourceId] : fallback;
+}
+
+function getPS(resourceId) {
+  const ps = state.playerState || {};
+  const keyNew = `risorsa${resourceId}`;
+  const keyOld = LEGACY_PS_COL[resourceId];
+  return Number(ps[keyNew] ?? ps[keyOld] ?? 0);
+}
+
+function setPS(resourceId, value) {
+  const ps = state.playerState;
+  if (!ps) return;
+  const keyNew = `risorsa${resourceId}`;
+  const keyOld = LEGACY_PS_COL[resourceId];
+  if (Object.prototype.hasOwnProperty.call(ps, keyNew)) ps[keyNew] = value;
+  else ps[keyOld] = value;
+}
+
+function addPS(resourceId, delta) {
+  setPS(resourceId, getPS(resourceId) + (Number(delta) || 0));
+}
+
+function psCol(resourceId) {
+  const ps = state.playerState || {};
+  const keyNew = `risorsa${resourceId}`;
+  return Object.prototype.hasOwnProperty.call(ps, keyNew) ? keyNew : LEGACY_PS_COL[resourceId];
+}
+
+function cfgProd(cfg, resourceId) {
+  if (!cfg) return 0;
+  const newKey = `prod_risorsa${resourceId}`;
+  const oldKey = resourceId === 1 ? 'prod_metallo' : resourceId === 2 ? 'prod_energia' : 'prod_cristallo';
+  return Number(cfg[newKey] ?? cfg[oldKey] ?? 0);
+}
+
+function cfgCost(cfg, resourceId) {
+  if (!cfg) return 0;
+  const newKey = `cost_risorsa${resourceId}`;
+  const oldKey = resourceId === 1 ? 'cost_metallo' : resourceId === 2 ? 'cost_energia' : 'cost_cristallo';
+  return Number(cfg[newKey] ?? cfg[oldKey] ?? 0);
+}
+
+      // ========= UTILS =========
+
+function formatSecondsToHMS(totalSeconds) {
+  totalSeconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+
+  const pad = (n) => n.toString().padStart(2, '0');
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+
+      function showStatus(msg) {
+        if (dom.statusText) {
+          dom.statusText.textContent = msg || '';
+        }
+      }
+
+    /*  function formatNumber(n) {
+        n = Number(n) || 0;
+        if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+        if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+        if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+        return n.toFixed(0);
+      }
+*/
+      function updateResourcesUI() {
+  const ps = state.playerState;
+  if (!ps) return;
+
+  for (const rid of RESOURCE_IDS) {
+    const label = getResourceLabel(rid);
+    const amount = getPS(rid);
+    const decimals = Number(label.decimals) || 0;
+
+    const labelEl = dom[`res${rid}Label`];
+    const valueEl = dom[`res${rid}Value`];
+
+    if (labelEl) {
+      const prefix = label.icon ? (label.icon + ' ') : '';
+      labelEl.textContent = prefix + (label.name || `Risorsa${rid}`);
+    }
+    if (valueEl) {
+      valueEl.textContent = formatAmount(amount, decimals);
+    }
+  }
+}
+
+      function getBuildingRow(type) {
+        return state.playerBuildings.find(b => b.building_type === type);
+      }
+
+      // ========= CARICAMENTO DB =========
+
+      async function loadOrCreatePlayerState() {
+        const userId = state.user.id;
+        let { data, error } = await sb
+          .from('player_state')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        // PGRST116 = no rows for single()
+        if (error && error.code === 'PGRST116') {
+          // Prova schema nuovo: risorsa1/2/3. Se non esiste (DB non migrato), fallback allo schema vecchio.
+let res = await sb
+  .from('player_state')
+  .insert({
+    user_id: userId,
+    village_name: 'Nuovo Avamposto',
+    risorsa1: 0,
+    risorsa2: 0,
+    risorsa3: 0
+  })
+  .select()
+  .single();
+
+if (res.error) {
+  console.warn('Insert schema nuovo fallito, provo schema vecchio:', res.error.message || res.error);
+  res = await sb
+    .from('player_state')
+    .insert({
+      user_id: userId,
+      village_name: 'Nuovo Avamposto',
+      metallo: 0,
+      energia: 0,
+      cristallo: 0
+    })
+    .select()
+    .single();
+}
+
+if (res.error) throw res.error;
+data = res.data;
+
+} else if (error) {
+          throw error;
+        }
+
+        return data;
+      }
+
+      async function loadPlayerBuildings() {
+        const userId = state.user.id;
+        const { data, error } = await sb
+          .from('player_buildings')
+          .select('*')
+          .eq('user_id', userId);
+        if (error) throw error;
+        return data || [];
+      }
+
+      async function loadBuildingLevels() {
+        const { data, error } = await sb
+          .from('building_levels')
+          .select('*');
+        if (error) throw error;
+
+        const levelsMap = {};
+        for (const row of data) {
+          if (!levelsMap[row.building_type]) {
+            levelsMap[row.building_type] = {};
+          }
+          levelsMap[row.building_type][row.level] = row;
+        }
+        return levelsMap;
+      }
+
+      async function ensureDefaultBuildings() {
+        const userId = state.user.id;
+        const existing = await loadPlayerBuildings();
+        const types = new Set(existing.map(b => b.building_type));
+        const toInsert = [];
+
+        if (!types.has('miniera')) {
+          toInsert.push({ user_id: userId, building_type: 'miniera', level: 1 });
+        }
+        if (!types.has('reattore')) {
+          toInsert.push({ user_id: userId, building_type: 'reattore', level: 0 });
+        }
+        if (!types.has('laboratorio_cristallo')) {
+          toInsert.push({ user_id: userId, building_type: 'laboratorio_cristallo', level: 0 });
+        }
+        if (!types.has('comando')) {
+          toInsert.push({ user_id: userId, building_type: 'comando', level: 1 });
+        }
+
+        if (toInsert.length > 0) {
+          const { error } = await sb
+            .from('player_buildings')
+            .insert(toInsert);
+          if (error) throw error;
+        }
+      }
+
+      async function savePlayerState() {
+        const ps = state.playerState;
+        if (!state.user || !ps) return;
+
+        const nowIso = new Date().toISOString();
+        ps.last_save = nowIso;
+
+        const { error } = await sb
+          .from('player_state')
+          .update((() => {
+            const payload = {
+              village_name: ps.village_name,
+              last_save: ps.last_save
+            };
+
+            for (const rid of RESOURCE_IDS) {
+              payload[psCol(rid)] = formatInt(getPS(rid));
+            }
+
+            return payload;
+          })())
+          .eq('user_id', state.user.id);
+
+
+        if (error) {
+          console.error('Errore salvataggio stato:', error);
+        }
+      }
+
+      // ========= PRODUZIONE =========
+
+      function getTotalProduction() {
+  const prod = { 1: 0, 2: 0, 3: 0 };
+  if (!state.levelConfig) return prod;
+
+  for (const b of state.playerBuildings) {
+    const cfg = state.levelConfig?.[b.building_type]?.[b.level];
+    if (!cfg) continue;
+
+    for (const rid of RESOURCE_IDS) {
+      prod[rid] += cfgProd(cfg, rid);
+    }
+  }
+
+  // Bonus Centro di Comando: +5% per livello oltre il 1
+  const comando = state.playerBuildings.find(b => b.building_type === 'comando');
+  if (comando && comando.level > 1) {
+    const bonus = 1 + 0.05 * (comando.level - 1);
+    for (const rid of RESOURCE_IDS) {
+      prod[rid] *= bonus;
+    }
+  }
+
+  return prod;
+}
+
+      function applyOfflineProduction() {
+  const ps = state.playerState;
+  if (!ps || !ps.last_save) return;
+
+  const now = new Date();
+  const last = new Date(ps.last_save);
+  const secondsOffline = (now - last) / 1000;
+
+  if (isNaN(secondsOffline) || secondsOffline <= 0) return;
+
+  const prod = getTotalProduction();
+  for (const rid of RESOURCE_IDS) {
+    addPS(rid, prod[rid] * secondsOffline);
+  }
+
+  ps.last_save = now.toISOString();
+}
+
+function formatDecimal(value, decimals = 2) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '0';
+  return n.toFixed(decimals); // restituisce una stringa tipo "1.20"
+}
+
+function formatInt(value, decimals = 0) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '0';
+  return n.toFixed(decimals); // restituisce una stringa tipo "1"
+}
+
+function startGameLoop() {
+  setInterval(async () => {
+    if (!state.playerState) return;
+
+    // 1) prima controlliamo se qualche costruzione è finita
+    await checkConstructionCompletions();
+
+    // 2) produzione risorse in base ai livelli attuali
+    const prod = getTotalProduction();
+    for (const rid of RESOURCE_IDS) {
+      addPS(rid, prod[rid]);
+    }
+
+    updateResourcesUI();
+
+    // 3) ridisegniamo le card edifici, così il countdown si aggiorna
+    renderBuildingsUI();
+
+    // 4) salvataggio periodico
+    state.secondsSinceLastSave += 1;
+    if (state.secondsSinceLastSave >= 10) {
+      state.secondsSinceLastSave = 0;
+      await savePlayerState();
+    }
+  }, 1000);
+}
+
+
+
+      // ========= UPGRADE EDIFICI =========
+
+      function canAfford(costById) {
+  return RESOURCE_IDS.every(rid => getPS(rid) >= Number(costById[rid] || 0));
+}
+
+function payCost(costById) {
+  for (const rid of RESOURCE_IDS) {
+    addPS(rid, -Number(costById[rid] || 0));
+  }
+}
+
+ async function handleUpgradeClick(buildingType) {
+  const row = state.playerBuildings.find(b => b.building_type === buildingType);
+  if (row && row.construction_finish_at && row.construction_target_level) {
+    showStatus('Questo edificio è già in costruzione.');
+    return;
+  }
+
+  try {
+    await upgradeBuilding(buildingType);
+  } catch (err) {
+    console.error(err);
+    showStatus('Errore upgrade: ' + err.message);
+  }
+}
+
+
+async function upgradeBuilding(buildingType) {
+  const idx = state.playerBuildings.findIndex(b => b.building_type === buildingType);
+  if (idx === -1) {
+    throw new Error('Edificio non presente nel tuo stato');
+  }
+
+  const b = state.playerBuildings[idx];
+
+  // Se è già in costruzione, blocca
+  if (b.construction_finish_at && b.construction_target_level) {
+    showStatus('Questo edificio è già in costruzione.');
+    return;
+  }
+
+  const currentLevel = b.level || 0;
+  const nextLevel = currentLevel + 1;
+
+  const cfgNext = state.levelConfig?.[buildingType]?.[nextLevel];
+  if (!cfgNext) {
+    showStatus('Livello massimo raggiunto per questo edificio.');
+    return;
+  }
+
+    const cost = {};
+  for (const rid of RESOURCE_IDS) {
+    cost[rid] = cfgCost(cfgNext, rid);
+  }
+
+  if (!canAfford(cost)) {
+    showStatus('Risorse insufficienti per l’upgrade.');
+    return;
+  }
+
+  // tempo di costruzione dal DB (in secondi)
+  const buildTime = Number(cfgNext.build_time_seconds || 0);
+
+  // paghi ORA
+  payCost(cost);
+  updateResourcesUI();
+
+  // imposti costruzione
+  const now = new Date();
+  const finish = new Date(now.getTime() + buildTime * 1000);
+
+  b.construction_target_level = nextLevel;
+  b.construction_finish_at = finish.toISOString();
+
+  state.playerBuildings[idx] = b;
+
+  renderBuildingsUI();
+
+  // salvi sul DB solo lo stato di costruzione, non il nuovo level
+  const { error } = await sb
+    .from('player_buildings')
+    .update({
+      construction_target_level: b.construction_target_level,
+      construction_finish_at: b.construction_finish_at
+    })
+    .eq('user_id', state.user.id)
+    .eq('building_type', buildingType);
+
+  if (error) {
+    console.error('Errore salvataggio edificio:', error);
+    showStatus('Errore salvataggio edificio: ' + error.message);
+  } else {
+    showStatus('Costruzione avviata.');
+  }
+
+  await savePlayerState();
+}
+
+async function checkConstructionCompletions() {
+  if (!state.playerBuildings || state.playerBuildings.length === 0) return;
+
+  const now = new Date();
+  const completed = [];
+
+  for (const b of state.playerBuildings) {
+    if (!b.construction_finish_at || !b.construction_target_level) continue;
+
+    const finish = new Date(b.construction_finish_at);
+    if (finish <= now) {
+      // costruzione completata
+      b.level = b.construction_target_level;
+      b.construction_target_level = null;
+      b.construction_finish_at = null;
+      completed.push(b);
+    }
+  }
+
+  if (completed.length === 0) return;
+
+  // salva le modifiche sul DB
+  const updates = completed.map(b =>
+    sb.from('player_buildings')
+      .update({
+        level: b.level,
+        construction_target_level: null,
+        construction_finish_at: null
+      })
+      .eq('user_id', state.user.id)
+      .eq('building_type', b.building_type)
+  );
+
+  try {
+    await Promise.all(updates);
+  } catch (err) {
+    console.error('Errore aggiornando completamenti:', err);
+  }
+
+  renderBuildingsUI();
+  showStatus('Costruzione completata per ' + completed.length + ' edificio/i.');
+}
+
+      // ========= RENDER UI EDIFICI =========
+
+ function renderBuildingsUI() {
+  const container = dom.buildingsList;
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!state.levelConfig) return;
+
+  const now = new Date();
+
+  for (const type of BUILDING_ORDER) {
+    const meta = BUILDING_META[type];
+    if (!meta) continue;
+
+    const row = getBuildingRow(type) || { level: 0 };
+    const level = row.level || 0;
+
+    const cfgCurrent = state.levelConfig?.[type]?.[level] || null;
+    const cfgNext = state.levelConfig?.[type]?.[level + 1] || null;
+
+    let underConstruction = false;
+    let remainingSeconds = 0;
+
+    if (row.construction_finish_at && row.construction_target_level) {
+      const finish = new Date(row.construction_finish_at);
+      if (finish > now) {
+        underConstruction = true;
+        remainingSeconds = Math.max(0, Math.round((finish - now) / 1000));
+      }
+    }
+
+    const card = document.createElement('article');
+    card.className = 'building-card';
+
+    // header
+    const header = document.createElement('div');
+    header.className = 'building-header';
+
+    const title = document.createElement('div');
+    title.className = 'building-title';
+    title.textContent = meta.icon + ' ' + meta.label;
+
+    const levelSpan = document.createElement('div');
+    levelSpan.className = 'building-level';
+    levelSpan.textContent = 'Lv ' + level + (underConstruction ? ' (in costruzione)' : '');
+
+    header.appendChild(title);
+    header.appendChild(levelSpan);
+
+    // descrizione
+    const desc = document.createElement('p');
+    desc.className = 'building-desc';
+    desc.textContent = meta.description;
+
+    // produzione
+const prod = document.createElement('div');
+prod.className = 'building-prod';
+
+if (cfgCurrent) {
+  const parts = [];
+  for (const rid of RESOURCE_IDS) {
+    const val = cfgProd(cfgCurrent, rid);
+    if (val) {
+      const lab = getResourceLabel(rid);
+      const tag = lab.short_name || lab.name || `R${rid}`;
+      parts.push('+' + formatAmount(val, 2) + '/s ' + tag);
+    }
+  }
+  prod.textContent = 'Produzione: ' + (parts.join(' · ') || 'nessuna');
+} else {
+  prod.textContent = 'Produzione: nessuna (non ancora costruito)';
+}
+// Mostra il miglioramento rispetto al livello attuale
+if (cfgNext) {
+  const deltaParts = [];
+
+  for (const rid of RESOURCE_IDS) {
+    const nextVal = cfgProd(cfgNext, rid);
+    const curVal = cfgProd(cfgCurrent, rid);
+    const d = nextVal - curVal;
+    if (d > 0) {
+      const lab = getResourceLabel(rid);
+      const tag = lab.short_name || lab.name || `R${rid}`;
+      deltaParts.push('+' + formatAmount(d, 2) + '/s ' + tag);
+    }
+  }
+
+  if (deltaParts.length > 0) {
+    const improv = document.createElement('div');
+    improv.className = 'building-prod';
+    improv.textContent = 'Prossimo livello: ' + deltaParts.join(' · ');
+    card.appendChild(improv);
+  }
+}
+
+// costi + tempo
+const costDiv = document.createElement('div');
+costDiv.className = 'building-cost';
+
+if (underConstruction) {
+  const timeString = formatSecondsToHMS(remainingSeconds);
+  costDiv.textContent = 'In costruzione: ' + timeString + ' rimanenti';
+} else if (cfgNext) {
+  const cParts = [];
+  for (const rid of RESOURCE_IDS) {
+    const c = cfgCost(cfgNext, rid);
+    if (c) {
+      const lab = getResourceLabel(rid);
+      const tag = lab.short_name || lab.name || `R${rid}`;
+      cParts.push(formatAmount(c, Number(lab.decimals) || 0) + ' ' + tag);
+    }
+  }
+
+  const timeText = cfgNext.build_time_seconds
+    ? ' · Tempo: ' + formatSecondsToHMS(cfgNext.build_time_seconds)
+    : '';
+
+  costDiv.textContent =
+    'Upgrade a Lv ' + (level + 1) + ': ' + cParts.join(' · ') + timeText;
+} else {
+  costDiv.textContent = 'Livello massimo raggiunto';
+}
+
+
+    // pulsante
+    const actions = document.createElement('div');
+    actions.className = 'building-actions';
+    const btn = document.createElement('button');
+    btn.className = 'btn-upgrade';
+    btn.textContent = cfgNext ? (underConstruction ? 'IN CORSO' : 'UPGRADE') : 'MAX';
+    btn.disabled = !cfgNext || underConstruction;
+    btn.addEventListener('click', () => handleUpgradeClick(type));
+    actions.appendChild(btn);
+
+    card.appendChild(header);
+    card.appendChild(desc);
+    card.appendChild(prod);
+    card.appendChild(costDiv);
+    card.appendChild(actions);
+
+    container.appendChild(card);
+  }
+}
+
+      // ========= AUTH =========
+
+      async function handleLogin(mode) {
+        const email = (dom.emailInput.value || '').trim();
+        const password = dom.passwordInput.value || '';
+
+        if (!email || !password) {
+          showStatus('Inserisci email e password.');
+          return;
+        }
+
+        try {
+          showStatus(mode === 'signup' ? 'Registrazione in corso...' : 'Login in corso...');
+
+          let result;
+          if (mode === 'signup') {
+            result = await sb.auth.signUp({ email, password });
+          } else {
+            result = await sb.auth.signInWithPassword({ email, password });
+          }
+
+          if (result.error) {
+            throw result.error;
+          }
+
+          const { data, error } = await sb.auth.getUser();
+          if (error || !data.user) {
+            throw error || new Error('Impossibile ottenere l’utente dopo login');
+          }
+
+          state.user = data.user;
+          dom.authPanel.classList.add('hidden');
+          dom.gameSection.classList.remove('hidden');
+
+          await initGameForCurrentUser();
+        } catch (err) {
+          console.error(err);
+          showStatus('Errore auth: ' + err.message);
+        }
+      }
+
+      function setupEventListeners() {
+        if (dom.loginButton) {
+          dom.loginButton.addEventListener('click', () => handleLogin('login'));
+        }
+        if (dom.signupButton) {
+          dom.signupButton.addEventListener('click', () => handleLogin('signup'));
+        }
+      }
+
+      // ========= INIT GIOCO =========
+
+      async function initGameForCurrentUser() {
+        try {
+          showStatus('Caricamento dati gioco...');
+
+          const [playerState, levelConfig, resourceLabels] = await Promise.all([
+            loadOrCreatePlayerState(),
+            loadBuildingLevels(),
+            loadLabels().catch(err => {
+              console.warn('Impossibile caricare resource_labels:', err.message || err);
+              return null;
+            })
+          ]);
+
+          state.resourceLabels = resourceLabels || null;
+
+          state.playerState = playerState;
+          state.levelConfig = levelConfig;
+
+          await ensureDefaultBuildings();
+          state.playerBuildings = await loadPlayerBuildings();
+
+          dom.villageName.textContent = state.playerState.village_name || 'Colonia senza nome';
+
+          applyOfflineProduction();
+          updateResourcesUI();
+          renderBuildingsUI();
+          startGameLoop();
+
+          showStatus('Benvenuto nella colonia!');
+        } catch (err) {
+          console.error(err);
+          showStatus('Errore caricamento gioco: ' + err.message);
+        }
+      }
+
+      async function bootstrap() {
+        setupEventListeners();
+
+        // Se c'è già una sessione Supabase, salta la schermata di login
+        try {
+          const { data, error } = await sb.auth.getUser();
+          if (!error && data && data.user) {
+            state.user = data.user;
+            dom.authPanel.classList.add('hidden');
+            dom.gameSection.classList.remove('hidden');
+            await initGameForCurrentUser();
+          } else {
+            showStatus('Accedi con email e password per iniziare.');
+          }
+        } catch (err) {
+          console.error(err);
+          showStatus('Errore inizializzazione auth: ' + err.message);
+        }
+      }
+
+      bootstrap();
+    })();
+  </script>
+</body>
+</html>
